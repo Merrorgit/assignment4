@@ -8,13 +8,11 @@ dotenv.config();
 
 const app = express();
 
-// Set EJS as the templating engine
+
 app.set('view engine', 'ejs');
 
-// Serve static files
 app.use(express.static('public'));
 
-// Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -23,12 +21,10 @@ app.use(session({
     saveUninitialized: true,
 }));
 
-// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB Atlas'))
     .catch(err => console.error('MongoDB connection error:', err));
 
-// Define User Schema
 const userSchema = new mongoose.Schema({
     username: String,
     email: { type: String, unique: true },
@@ -37,9 +33,7 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// Routes
 
-// Home Route
 app.get('/', (req, res) => {
     if (req.session.userId) {
         res.redirect('/dashboard');
@@ -48,7 +42,6 @@ app.get('/', (req, res) => {
     }
 });
 
-// Register Route
 app.get('/register', (req, res) => {
     res.render('register');
 });
@@ -68,7 +61,6 @@ app.post('/register', async (req, res) => {
     res.redirect('/login');
 });
 
-// Login Route
 app.get('/login', (req, res) => {
     res.render('login');
 });
@@ -92,31 +84,26 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Dashboard Route
 app.get('/dashboard', async (req, res) => {
-    // Проверяем, авторизован ли пользователь
     if (!req.session.userId) {
         return res.redirect('/login');
     }
 
     try {
-        // Ищем пользователя по ID
         const user = await User.findById(req.session.userId);
         
-        // Проверяем, существует ли пользователь
         if (!user) {
             return res.status(404).send('User not found');
         }
 
-        // Если пользователь найден, рендерим dashboard с данными пользователя
         res.render('dashboard', { user });
     } catch (err) {
-        console.error(err); // Выводим ошибку в консоль для отладки
+        console.error(err); 
         res.status(500).send('Server Error');
     }
 });
 
-// Logout Route
+
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -126,7 +113,6 @@ app.get('/logout', (req, res) => {
     });
 });
 
-// Start server
 app.listen(5002, () => {
     console.log('Server running on http://localhost:5002');
 });
